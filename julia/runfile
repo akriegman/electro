@@ -1,0 +1,6 @@
+fmt() {
+  julia <<EOF
+    using JuliaFormatter
+    format(".", indent = 4, margin = 85)
+EOF
+}
