@@ -11,19 +11,22 @@ begin
     using Plots
     using Colors
     using FFTW
+	using Printf
 end
 
 # ╔═╡ 7665bb81-ba8f-4e6f-b540-b97860e8d6a3
 begin
     pid = 2 * pi * im
     pix = 2 * pi
+	
+    hd = im * 0.1
     m = 1
     V0 = 1
-    hd = im * 0.01
-    fps = 20
-    T = 10
-    N = 16
     n = 3
+	
+    fps = 20
+    T = 15
+    N = 16
     h = 1 / N
 end
 
@@ -46,19 +49,28 @@ begin
         V0 * twist(
             xs,
             (x...) ->
-                sum(cos(pix * (x[i] - x[j])) for i = 1:n for j = 1:i-1; init = 0),
+                sum(
+					@chain x[i] - x[j] _ * pix cos exp 
+					for i = 1:n for j = 1:i-1; init = 0),
         )
-    dqdt(q, p, t) = (hd^2 / 2 / m * laplacian(q) + V .* q) / hd
+	H(q) = hd^2 / 2 / m * laplacian(q) + V .* q
+    dqdt(q, p, t) = H(q) / hd
 	k = rand([-1, 1], n)
 	p = exp.(pid * rand(n))
     q0 = twist(xs, (x...) -> p .* exp.(pid .* x .* k) .+ 1 |> prod)
     q0 /= @chain q0 abs2.() sum _ * h^n sqrt
-	
-    # @show laplacian(cos.(pix * xs) .* ones((N for _ = 1:n)...))[1]
-	
-    @time sol = @chain ODEProblem(dqdt, q0, (0.0, float(T))) solve
-    @time @gif for t = 0:1/fps:T
-        @chain sol(t) abs2.() plot(
+	int = @chain ODEProblem(dqdt, q0, (0.0, float(T))) init
+	int.alg
+end
+
+# ╔═╡ 3804b7ce-c68a-486c-b7e8-a5cf47b96be2
+laplacian(cos.(pix * xs) .* ones((N for _ = 1:n)...))[1] - pid^2
+
+# ╔═╡ f6f1ae67-aa0a-40f1-9785-8a864d7742ee
+
+begin
+    @time @gif for (q,) in TimeChoiceIterator(int, 0:1/fps:T)
+        @chain q abs2.() plot(
             xs,
             [
                 begin
@@ -73,6 +85,9 @@ begin
             # color = HSV.(sol(t) .|> angle .|> rad2deg, 1, 1),
             # linewidth = 2,
         )
+		
+		E = @chain conj(q) .* H(q) sum _ * h^n real
+		annotate!(0.7, 1.95, (@sprintf("\$E = %.5f\$", E), :left))
     end fps = fps
 end
 
@@ -84,6 +99,7 @@ Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 Chain = "~0.5.0"
@@ -99,7 +115,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.2"
 manifest_format = "2.0"
-project_hash = "6de5b9919e36caa9f8a7a2f2e5d802a054f19d7d"
+project_hash = "296ba6c011f402b8178dc4578baed775cb5d2619"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f5c25e8a5b29b5e941b7408bc8cc79fea4d9ef9a"
@@ -1985,5 +2001,7 @@ version = "1.4.1+0"
 # ╠═4b9fa27f-d43d-4e11-b19b-0a05817f43a5
 # ╠═45460016-0cc6-4f47-a087-d041058e4f43
 # ╠═26962212-c379-4552-b997-19f788ca23d2
+# ╠═3804b7ce-c68a-486c-b7e8-a5cf47b96be2
+# ╠═f6f1ae67-aa0a-40f1-9785-8a864d7742ee
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
