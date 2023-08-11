@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://r7jh1j3ul7a0"]
+
+[ext_resource type="Script" path="res://field.gd" id="1_cqxnb"]
+[ext_resource type="Script" path="res://input.gd" id="1_cror8"]
+[ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://joystick/virtual_joystick.tscn" id="4_6v544"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cgo2v"]
+
+[node name="Node" type="Node"]
+
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("joystick")]
+script = ExtResource("1_cror8")
+joystick = NodePath("../CanvasLayer/Virtual Joystick")
+dampening = 0.05
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.45404)
+mesh = SubResource("BoxMesh_cgo2v")
+script = ExtResource("1_cqxnb")
+
+[node name="CanvasLayer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Virtual Joystick" parent="CanvasLayer" instance=ExtResource("4_6v544")]
+layout_mode = 1
+
+[node name="up" type="Button" parent="CanvasLayer"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -400.0
+offset_bottom = -200.0
+text = "up"
+
+[node name="down" type="Button" parent="CanvasLayer"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -200.0
+text = "down"
+
+[connection signal="button_down" from="CanvasLayer/up" to="Camera3D" method="_on_up_button_down"]
+[connection signal="button_up" from="CanvasLayer/up" to="Camera3D" method="_on_up_button_up"]
+[connection signal="button_down" from="CanvasLayer/down" to="Camera3D" method="_on_down_button_down"]
+[connection signal="button_up" from="CanvasLayer/down" to="Camera3D" method="_on_down_button_up"]

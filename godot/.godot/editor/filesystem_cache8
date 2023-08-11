@@ -1,0 +1,13 @@
+fc8a56933c4b1c8d796fdb8f7a9f9475
+::res://::1691662367
+field.gd::GDScript::-1::1691613687::0::1::::<>MeshInstance3D<>::
+icon.svg::CompressedTexture2D::3238154498264974466::1691506988::1691507276::1::::<><>::
+input.gd::GDScript::-1::1691621203::0::1::::<>Node3D<>::
+two_charges.tscn::PackedScene::1259830764278427249::1691662367::0::1::::<><>::res://field.gd<>res://input.gd<>uid://dmr0fcamx7t56
+::res://joystick/::1691662367
+virtual_joystick.gd::GDScript::-1::1691621115::0::1::::VirtualJoystick<>Control<>::
+virtual_joystick.tscn::PackedScene::8038149555967335895::1691662367::0::1::::<><>::res://joystick/virtual_joystick.gd<>uid://bm30au8mjfc2f<>uid://bkvmydfn5saxg
+::res://joystick/textures/::1691621115
+joystick_base_outline.png::CompressedTexture2D::3288008411285325467::1691621115::1691621115::1::::<><>::
+joystick_tip.png::CompressedTexture2D::3132432681801126628::1691621115::1691621115::1::::<><>::
+joystick_tip_arrows.png::CompressedTexture2D::8548255698028078709::1691621115::1691621115::1::::<><>::
