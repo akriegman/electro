@@ -5,6 +5,7 @@ import sys
 godot_cpp_path = "cpp/godot-cpp"
 src_path = "cpp"
 godot_project_path = "godot"
+project_name = "electro"
 
 env = SConscript(godot_cpp_path + "/SConstruct")
 
@@ -22,14 +23,14 @@ sources = Glob(src_path + "/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        godot_project_path + "/bin/libgdexample.{}.{}.framework/libgdexample.{}.{}".format(
+        godot_project_path + "/bin/lib" + project_name + ".{}.{}.framework/libgdexample.{}.{}".format(
             env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
     )
 else:
     library = env.SharedLibrary(
-        godot_project_path + "/bin/libgdexample{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        godot_project_path + "/bin/lib" + project_name + "{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 

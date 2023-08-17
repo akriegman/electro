@@ -1,22 +1,28 @@
-[gd_scene load_steps=5 format=3 uid="uid://r7jh1j3ul7a0"]
+[gd_scene load_steps=6 format=3 uid="uid://r7jh1j3ul7a0"]
 
-[ext_resource type="Script" path="res://field.gd" id="1_cqxnb"]
 [ext_resource type="Script" path="res://input.gd" id="1_cror8"]
+[ext_resource type="Script" path="res://mobile_only.gd" id="3_qljia"]
 [ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://joystick/virtual_joystick.tscn" id="4_6v544"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_cgo2v"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_mrigf"]
+_surfaces = [{
+"aabb": AABB(0, -0.166667, 0, 1, 0.333333, 1e-05),
+"format": 1,
+"primitive": 1,
+"vertex_count": 6,
+"vertex_data": PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 171, 170, 170, 62, 171, 170, 42, 62, 0, 0, 0, 0, 171, 170, 42, 63, 0, 0, 0, 0, 0, 0, 0, 0, 171, 170, 42, 63, 0, 0, 0, 0, 0, 0, 0, 0, 171, 170, 170, 62, 171, 170, 42, 190, 0, 0, 0, 0)
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ngsny"]
+vertex_color_use_as_albedo = true
 
 [node name="Node" type="Node"]
 
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("joystick")]
+transform = Transform3D(-0.99103, 0, -0.13364, 0, 1, 0, 0.13364, 0, -0.99103, 1.66662, 1.34108, -2.73471)
 script = ExtResource("1_cror8")
 joystick = NodePath("../CanvasLayer/Virtual Joystick")
 dampening = 0.05
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.45404)
-mesh = SubResource("BoxMesh_cgo2v")
-script = ExtResource("1_cqxnb")
 
 [node name="CanvasLayer" type="Control" parent="."]
 layout_mode = 3
@@ -25,6 +31,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("3_qljia")
 
 [node name="Virtual Joystick" parent="CanvasLayer" instance=ExtResource("4_6v544")]
 layout_mode = 1
@@ -51,6 +58,10 @@ anchor_bottom = 1.0
 offset_left = -200.0
 offset_top = -200.0
 text = "down"
+
+[node name="Field" type="Field" parent="."]
+mesh = SubResource("ArrayMesh_mrigf")
+surface_material_override/0 = SubResource("StandardMaterial3D_ngsny")
 
 [connection signal="button_down" from="CanvasLayer/up" to="Camera3D" method="_on_up_button_down"]
 [connection signal="button_up" from="CanvasLayer/up" to="Camera3D" method="_on_up_button_up"]

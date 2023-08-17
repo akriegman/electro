@@ -1,0 +1,4 @@
+
+function edit {
+	godot godot/project.godot
+}
