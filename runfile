@@ -1,18 +1,18 @@
 
 function all {
-	run
+    run
 }
 
 function run {
-	if scons; then
-	    ( cd godot ; godot -f )
-	fi
+    if scons; then
+        ( cd godot ; godot -f )
+    fi
 }
 
 function edit {
-	godot godot/project.godot
+    ( godot godot/project.godot >/dev/null 2>&1 & )
 }
 
 function fmt {
-	clang-format -i cpp/*.cpp cpp/*.h
+    clang-format -i cpp/*.cpp cpp/*.h
 }

@@ -6,7 +6,26 @@
 using namespace godot;
 using namespace Eigen;
 
-void Field::_bind_methods() {}
+void Field::_bind_methods() {
+  ClassDB::bind_method(D_METHOD("get_n"), &Field::get_n);
+  ClassDB::bind_method(D_METHOD("set_n", "p_n"), &Field::set_n);
+  ClassDB::add_property("Field", PropertyInfo(Variant::INT, "n"), "set_n",
+                        "get_n");
+  ClassDB::bind_method(D_METHOD("get_c"), &Field::get_c);
+  ClassDB::bind_method(D_METHOD("set_c", "p_c"), &Field::set_c);
+  ClassDB::add_property(
+      "Field",
+      PropertyInfo(Variant::FLOAT, "c", PROPERTY_HINT_RANGE, "0,1,0.01"),
+      "set_c", "get_c");
+  ClassDB::bind_method(D_METHOD("get_dt"), &Field::get_dt);
+  ClassDB::bind_method(D_METHOD("set_dt", "p_dt"), &Field::set_dt);
+  ClassDB::add_property(
+      "Field",
+      PropertyInfo(Variant::FLOAT, "dt", PROPERTY_HINT_RANGE, "0,1,0.01"),
+      "set_dt", "get_dt");
+  ClassDB::bind_method(D_METHOD("make_charge", "pos"), &Field::make_charge);
+  ClassDB::bind_method(D_METHOD("charge_moved", "pos"), &Field::charge_moved);
+}
 
 Field::Field() : n(8), c(0.5), dt(1. / 2), xt(n, n, n) {
   xt.setConstant(0);
@@ -15,7 +34,13 @@ Field::Field() : n(8), c(0.5), dt(1. / 2), xt(n, n, n) {
   xy = xt.constant(0);
   yz = xt.constant(0);
   zx = xt.constant(0);
-  xt(4, 4, 4) = 10;
+  Jxy = xt.constant(0);
+  Jyz = xt.constant(0);
+  Jzx = xt.constant(0);
+
+  Ref<ArrayMesh> mesh;
+  mesh.instantiate();
+  set_mesh(mesh);
 }
 
 void Field::_ready() { time_since_tick = 0; }
@@ -76,10 +101,9 @@ void Field::draw() {
 
   arrays[Mesh::ARRAY_COLOR] = colors;
   arrays[Mesh::ARRAY_VERTEX] = verts;
-  Ref<ArrayMesh> mesh;
-  mesh.instantiate();
+  ArrayMesh *mesh = Object::cast_to<ArrayMesh>(*get_mesh());
+  mesh->clear_surfaces();
   mesh->add_surface_from_arrays(Mesh::PRIMITIVE_LINES, arrays);
-  set_mesh(mesh);
 }
 
 void Field::_process(double delta) {
@@ -101,4 +125,12 @@ void Field::_process(double delta) {
 
     draw();
   }
+}
+
+void Field::make_charge(Vector3 pos) { charge_position = pos; }
+
+void Field::charge_moved(Vector3 pos) {
+  Vector3 old_cell = charge_position.floor();
+  Vector3 new_cell = pos.floor();
+  charge_position = pos;
 }

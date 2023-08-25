@@ -1,7 +1,9 @@
 extends Node3D
 
-@export var joystick: VirtualJoystick
+signal moved(Vector3)
+signal made(Vector3)
 
+@export var joystick: VirtualJoystick
 @export var dampening = 0.1
 @export var force = 4.0
 @export var sensitivity = 200
@@ -9,6 +11,7 @@ var velocity = Vector3.ZERO
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	made.emit(position)
 
 func _process(delta):
 	var acceleration = Vector3.ZERO
@@ -35,6 +38,7 @@ func _process(delta):
 	velocity += acceleration * delta
 	velocity *= dampening ** delta
 	position += velocity * delta
+	moved.emit(position)
 	
 func _input(event):
 	if event is InputEventMouseMotion and not joystick.is_pressed:
@@ -52,17 +56,3 @@ func _on_down_button_down():
 
 func _on_down_button_up():
 	Input.action_release("move_down")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
