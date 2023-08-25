@@ -7,6 +7,9 @@ extends Node3D
 @export var sensitivity = 200
 var velocity = Vector3.ZERO
 
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
 func _process(delta):
 	var acceleration = Vector3.ZERO
 	

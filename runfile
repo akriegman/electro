@@ -1,4 +1,18 @@
 
+function all {
+	run
+}
+
+function run {
+	if scons; then
+	    ( cd godot ; godot -f )
+	fi
+}
+
 function edit {
 	godot godot/project.godot
+}
+
+function fmt {
+	clang-format -i cpp/*.cpp cpp/*.h
 }
