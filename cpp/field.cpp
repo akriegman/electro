@@ -7,10 +7,10 @@ using namespace godot;
 using namespace Eigen;
 
 void Field::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("get_n"), &Field::get_n);
-  ClassDB::bind_method(D_METHOD("set_n", "p_n"), &Field::set_n);
-  ClassDB::add_property("Field", PropertyInfo(Variant::INT, "n"), "set_n",
-                        "get_n");
+  ClassDB::bind_method(D_METHOD("get_N"), &Field::get_N);
+  ClassDB::bind_method(D_METHOD("set_N", "p_N"), &Field::set_N);
+  ClassDB::add_property("Field", PropertyInfo(Variant::INT, "N"), "set_N",
+                        "get_N");
   ClassDB::bind_method(D_METHOD("get_c"), &Field::get_c);
   ClassDB::bind_method(D_METHOD("set_c", "p_c"), &Field::set_c);
   ClassDB::add_property(
@@ -27,16 +27,12 @@ void Field::_bind_methods() {
   ClassDB::bind_method(D_METHOD("charge_moved", "pos"), &Field::charge_moved);
 }
 
-Field::Field() : n(8), c(0.5), dt(1. / 2), xt(n, n, n) {
-  xt.setConstant(0);
-  yt = xt.constant(0);
-  zt = xt.constant(0);
-  xy = xt.constant(0);
-  yz = xt.constant(0);
-  zx = xt.constant(0);
-  Jxy = xt.constant(0);
-  Jyz = xt.constant(0);
-  Jzx = xt.constant(0);
+Field::Field() : N(8), c(0.5), dt(1. / 2), q(6) {
+  Tensor<double, 3> empty(N, N, N);
+  empty.setZero();
+  for (int i : axes) {
+    H[i] = D[i] = J[i] = empty;
+  }
 
   Ref<ArrayMesh> mesh;
   mesh.instantiate();
@@ -56,7 +52,6 @@ void Field::draw() {
       Vector3(3. / 5, 1. / 5, 0), Vector3(3. / 5, 3. / 5, 0),
       Vector3(4. / 5, 3. / 5, 0), Vector3(2. / 5, 3. / 5, 0),
       Vector3(2. / 5, 4. / 5, 0), Vector3(2. / 5, 2. / 5, 0),
-
   };
 
   Vector3 axis = Vector3(1, 1, 1).normalized();
@@ -69,11 +64,11 @@ void Field::draw() {
   PackedColorArray colors;
   PackedVector3Array verts;
 
-  for (int x = 0; x < n; x++) {
-    for (int y = 0; y < n; y++) {
-      for (int z = 0; z < n; z++) {
+  for (int x = 0; x < N; x++) {
+    for (int y = 0; y < N; y++) {
+      for (int z = 0; z < N; z++) {
         auto draw_shape = [&](auto &field, int axis_idx,
-                              std::vector<Vector3> shape, int color) {
+                              std::vector<Vector3> shape, double color) {
           double str = field(x, y, z);
           Transform3D trans(Basis(axis, Math_TAU * axis_idx / 3),
                             Vector3(x, y, z));
@@ -89,12 +84,11 @@ void Field::draw() {
           }
         };
 
-        draw_shape(xt, 0, arrow, 1);
-        draw_shape(yt, 1, arrow, 1);
-        draw_shape(zt, 2, arrow, 1);
-        draw_shape(xy, 0, vortex, -1);
-        draw_shape(yz, 1, vortex, -1);
-        draw_shape(zx, 2, vortex, -1);
+        for (int i : axes) {
+          draw_shape(H[i], i, arrow, 1);
+          draw_shape(D[i], i, vortex, -c);
+          // draw_shape(J[i], (i + 1) % 3, vortex, 1);
+        }
       }
     }
   }
@@ -112,25 +106,51 @@ void Field::_process(double delta) {
   while (time_since_tick >= dt) {
     time_since_tick -= dt;
 
-    // curl E + d/dt B = 0
-    xt += (zx - xy - antirotate(zx, 1, 2) + antirotate(xy, 1, 1)) * c * c;
-    yt += (xy - yz - antirotate(xy, 1, 0) + antirotate(yz, 1, 2)) * c * c;
-    zt += (yz - zx - antirotate(yz, 1, 1) + antirotate(zx, 1, 0)) * c * c;
+    // closed tick
     // curl H - d/dt D = J
-    xy += xt - yt - antirotate(xt, -1, 1) + antirotate(yt, -1, 0);
-    yz += yt - zt - antirotate(yt, -1, 2) + antirotate(zt, -1, 1);
-    zx += zt - xt - antirotate(zt, -1, 0) + antirotate(xt, -1, 2);
-    // note that aliasing is not an issue because the first three
-    // are actually happening on the open tick
+    for (int i : axes) {
+      int j = (i + 1) % 3;
+      int k = (i + 2) % 3;
+      D[i] += H[i] - H[j] - antirotate(H[i], -1, j) + antirotate(H[j], -1, i) -
+              J[k];
+      J[k].setZero();
+    }
+    // open tick
+    // curl E + d/dt B = 0
+    for (int i : axes) {
+      int j = (i + 1) % 3;
+      int k = (i + 2) % 3;
+      H[i] += (D[k] - D[i] - antirotate(D[k], 1, k) + antirotate(D[i], 1, j)) *
+              c * c;
+    }
+    // note that aliasing is not an issue because of how we split up the updates
 
     draw();
   }
 }
 
-void Field::make_charge(Vector3 pos) { charge_position = pos; }
+void Field::make_charge(Vector3 pos) {
+  charge_cell = pos.floor();
+  for (int i : axes) {
+    Vector3i face = charge_cell;
+    face[i]++;
+    peq_ap(D[i], -q / 6, charge_cell);
+    peq_ap(D[i], q / 6, face);
+  }
+}
 
 void Field::charge_moved(Vector3 pos) {
-  Vector3 old_cell = charge_position.floor();
-  Vector3 new_cell = pos.floor();
-  charge_position = pos;
+  Vector3i new_cell = pos.floor();
+
+  for (int i : axes) {
+    // at most one of these loops runs
+    while (charge_cell[i] < new_cell[i]) {
+      charge_cell[i]++;
+      peq_ap(J[i], q, charge_cell);
+    }
+    while (charge_cell[i] > new_cell[i]) {
+      peq_ap(J[i], -q, charge_cell);
+      charge_cell[i]--;
+    }
+  }
 }

@@ -5,7 +5,7 @@ function all {
 
 function run {
     if scons; then
-        ( cd godot ; godot -f )
+        ( cd godot ; godot -f $*)
     fi
 }
 

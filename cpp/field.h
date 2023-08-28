@@ -3,7 +3,7 @@
 #include <Eigen/CXX11/Tensor>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 
-int axes[] = {0, 1, 2};
+const int axes[] = {0, 1, 2};
 
 namespace godot {
 
@@ -15,7 +15,8 @@ public:
   double c;
   double dt;
   double time_since_tick;
-  Vector3 charge_position;
+  Vector3i charge_cell;
+  double q;
 
   static void _bind_methods();
 
@@ -31,10 +32,10 @@ public:
   void set_N(const int p_N) {
     N = p_N;
     for (int i : axes) {
-      H[i] = D[i] = Eigen::Tensor<double, 3>(N, N, N).setZero();
+      H[i] = D[i] = J[i] = Eigen::Tensor<double, 3>(N, N, N).setZero();
     }
   }
-  int get_N() const { return n; }
+  int get_N() const { return N; }
   void set_c(const double p_c) { c = p_c; }
   double get_c() const { return c; }
   void set_dt(const double p_dt) { dt = p_dt; }

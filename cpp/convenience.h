@@ -31,17 +31,20 @@ auto antirotate(const Tensor<T, N> &data, const Index dist, const Index dim) {
   }
 }
 
-// antiperiodic getter
-// unfinished, unneeded
-template <typename T, int N>
-T get_ap(Tensor<T, N> data, std::initializer_list<Index> idxs) {
+inline int mod(int x, int m) { return (x % m + m) % m; }
+
+// TODO: find a way to do more antiperiodic operations elegantly
+// maybe a signed_ref type which implements +=, *, =, etc. with appropriate
+// parity. would also be nice to make this generic in N
+template <typename T>
+void peq_ap(Tensor<T, 3> &data, T val, const godot::Vector3i &idxs) {
   int parity = 0;
-  DSizes<Index, N> reduced;
-  for (int i = 0; i < N; i++) {
-    parity += idxs.begin()[i] / data.dimension(i);
-    reduced[i] = idxs.begin()[i] % data.dimension(i);
+  Vector3i reduced;
+  for (int i : axes) {
+    parity += idxs[i] / data.dimension(i);
+    reduced[i] = mod(idxs[i], data.dimension(i));
   }
-  return data(reduced) * (parity % 2 == 0 ? 1 : -1);
+  data(reduced[0], reduced[1], reduced[2]) += val * (parity % 2 ? -1 : 1);
 }
 
 } // namespace Eigen

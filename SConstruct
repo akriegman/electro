@@ -19,6 +19,7 @@ env = SConscript(godot_cpp_path + "/SConstruct")
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=[src_path])
+env.Append(CCFLAGS = ["-fdiagnostics-color"])
 sources = Glob(src_path + "/*.cpp")
 
 if env["platform"] == "macos":
