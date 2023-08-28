@@ -27,7 +27,11 @@ void Field::_bind_methods() {
   ClassDB::bind_method(D_METHOD("charge_moved", "pos"), &Field::charge_moved);
 }
 
-Field::Field() : N(8), c(0.5), dt(1. / 2), q(6) {
+int n_threads() { return std::thread::hardware_concurrency() - 1; }
+
+Field::Field()
+    : N(8), c(0.5), dt(1. / 2), q(6), tp(n_threads()), tpd(&tp, n_threads()) {
+
   Tensor<double, 3> empty(N, N, N);
   empty.setZero();
   for (int i : axes) {
@@ -111,8 +115,8 @@ void Field::_process(double delta) {
     for (int i : axes) {
       int j = (i + 1) % 3;
       int k = (i + 2) % 3;
-      D[i] += H[i] - H[j] - antirotate(H[i], -1, j) + antirotate(H[j], -1, i) -
-              J[k];
+      D[i].device(tpd) += H[i] - H[j] - antirotate(H[i], -1, j) +
+                          antirotate(H[j], -1, i) - J[k];
       J[k].setZero();
     }
     // open tick
@@ -120,8 +124,9 @@ void Field::_process(double delta) {
     for (int i : axes) {
       int j = (i + 1) % 3;
       int k = (i + 2) % 3;
-      H[i] += (D[k] - D[i] - antirotate(D[k], 1, k) + antirotate(D[i], 1, j)) *
-              c * c;
+      H[i].device(tpd) +=
+          (D[k] - D[i] - antirotate(D[k], 1, k) + antirotate(D[i], 1, j)) * c *
+          c;
     }
     // note that aliasing is not an issue because of how we split up the updates
 

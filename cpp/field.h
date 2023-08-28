@@ -1,5 +1,6 @@
 #pragma once
 
+#define EIGEN_USE_THREADS
 #include <Eigen/CXX11/Tensor>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 
@@ -17,6 +18,8 @@ public:
   double time_since_tick;
   Vector3i charge_cell;
   double q;
+  Eigen::ThreadPool tp;
+  Eigen::ThreadPoolDevice tpd;
 
   static void _bind_methods();
 
