@@ -1,3 +1,4 @@
+#!/bin/bash
 
 function all {
     run
@@ -5,8 +6,14 @@ function all {
 
 function run {
     if scons; then
-        ( cd godot ; godot -f $*)
+        godot --path godot -f $*
     fi
+}
+
+function build {
+    declare -A ext=( [linux]="" [macos]=".dmg" [windows]=".exe" )
+	scons target=template_release platform=$1
+	godot --path godot --export-release $1 ../bin/electro${ext[$1]}
 }
 
 function edit {

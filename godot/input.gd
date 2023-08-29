@@ -40,8 +40,8 @@ func _process(delta):
 	position += velocity * delta
 	moved.emit(position)
 	
-func _input(event):
-	if event is InputEventMouseMotion and not joystick.is_pressed:
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
 		rotation.y -= event.relative.x / sensitivity
 		rotation.x -= event.relative.y / sensitivity
 
