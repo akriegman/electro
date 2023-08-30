@@ -11,9 +11,10 @@ function run {
 }
 
 function build {
-    declare -A ext=( [linux]="" [macos]=".dmg" [windows]=".exe" )
-	scons target=template_release platform=$1
-	godot --path godot --export-release $1 ../bin/electro${ext[$1]}
+    declare -A ext=( [linux]="" [macos]=".app" [windows]=".exe" )
+	if scons target=template_release platform=$1; then
+	    godot --path godot --export-release $1 ../bin/electro${ext[$1]}
+	fi
 }
 
 function edit {
