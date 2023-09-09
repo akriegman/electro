@@ -1,3 +1,5 @@
+https://youtu.be/s-dXnwaJokQ?si=nSp1d3t12h8iMQ6z
+
 ## running
 
 There's a Linux executable in `bin`, and there will be Mac and Windows executables as soon as I get that working. In the meantime, you can install Godot and run the project from the editor.
