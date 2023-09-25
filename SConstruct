@@ -22,6 +22,9 @@ env.Append(CPPPATH=[src_path])
 env.Append(CCFLAGS = ["-fdiagnostics-color"])
 sources = Glob(src_path + "/*.cpp")
 
+env.Tool("compilation_db")
+env.CompilationDatabase()
+
 if env["platform"] == "macos":
     library = env.SharedLibrary(
         godot_project_path + "/bin/lib" + project_name + ".{}.{}.framework/libgdexample.{}.{}".format(

@@ -22,5 +22,6 @@ function edit {
 }
 
 function fmt {
+    scons compile_commands.json
     clang-format -i cpp/*.cpp cpp/*.h
 }

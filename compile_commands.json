@@ -1,0 +1,14 @@
+[
+    {
+        "command": "g++ -o cpp/field.os -c -std=c++17 -fPIC -Wwrite-strings -m64 -march=x86-64 -O2 -fdiagnostics-color -fPIC -DLINUX_ENABLED -DUNIX_ENABLED -DDEBUG_ENABLED -DDEBUG_METHODS_ENABLED -Icpp/godot-cpp/gdextension -Icpp/godot-cpp/include -Icpp/godot-cpp/gen/include -Icpp cpp/field.cpp",
+        "directory": "/home/broses/src/electro",
+        "file": "cpp/field.cpp",
+        "output": "cpp/field.os"
+    },
+    {
+        "command": "g++ -o cpp/register_types.os -c -std=c++17 -fPIC -Wwrite-strings -m64 -march=x86-64 -O2 -fdiagnostics-color -fPIC -DLINUX_ENABLED -DUNIX_ENABLED -DDEBUG_ENABLED -DDEBUG_METHODS_ENABLED -Icpp/godot-cpp/gdextension -Icpp/godot-cpp/include -Icpp/godot-cpp/gen/include -Icpp cpp/register_types.cpp",
+        "directory": "/home/broses/src/electro",
+        "file": "cpp/register_types.cpp",
+        "output": "cpp/register_types.os"
+    }
+]
