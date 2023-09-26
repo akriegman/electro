@@ -1,8 +1,5 @@
 extends Node3D
 
-signal moved(Vector3)
-signal made(Vector3)
-
 @export var joystick: VirtualJoystick
 @export var dampening = 0.1
 @export var force = 4.0
@@ -11,7 +8,6 @@ var velocity = Vector3.ZERO
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	made.emit(position)
 
 func _process(delta):
 	var acceleration = Vector3.ZERO
@@ -38,7 +34,6 @@ func _process(delta):
 	velocity += acceleration * delta
 	velocity *= dampening ** delta
 	position += velocity * delta
-	moved.emit(position)
 	
 func _unhandled_input(event):
 	if event is InputEventMouseMotion:

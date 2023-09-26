@@ -12,37 +12,27 @@ class Field : public MeshInstance3D {
   GDCLASS(Field, MeshInstance3D)
 public:
   int N;
-  Eigen::Tensor<double, 3> H[3], D[3], J[3];
-  double c;
-  double dt;
-  double time_since_tick;
-  Vector3i charge_cell;
-  double q;
-  Eigen::ThreadPool tp;
-  Eigen::ThreadPoolDevice tpd;
+  // p is the negative pressure, because that convention is better and
+  // makes things symmetric.
+  Eigen::Tensor<double, 3> b[3], u[3], p;
+  double nu;
 
   static void _bind_methods();
 
   Field();
 
   void draw();
-  void _ready();
-  void _process(double delta);
-
-  void make_charge(Vector3 pos);
-  void charge_moved(Vector3 pos);
+  void _ready() override;
 
   void set_N(const int p_N) {
     N = p_N;
     for (int i : axes) {
-      H[i] = D[i] = J[i] = Eigen::Tensor<double, 3>(N, N, N).setZero();
+      b[i] = u[i] = p = Eigen::Tensor<double, 3>(N, N, N).setZero();
     }
   }
   int get_N() const { return N; }
-  void set_c(const double p_c) { c = p_c; }
-  double get_c() const { return c; }
-  void set_dt(const double p_dt) { dt = p_dt; }
-  double get_dt() const { return dt; }
+  void set_nu(const double p_nu) { nu = p_nu; }
+  double get_nu() const { return nu; }
 };
 
 } // namespace godot
