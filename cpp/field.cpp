@@ -95,13 +95,13 @@ void Field::_ready() {
     u::print("problem decomposing stokes: ", solver.info());
   }
 
+  u::print("rank: ", solver.rank(), " out of ", solver.rows());
+
   VectorXd u_p_flat = solver.solve(b_flat);
 
   if (solver.info() != Success) {
     u::print("problem solving stokes: ", solver.info());
   }
-
-  u::print(b_flat.isApprox(stokes * u_p_flat));
 
   for (int i : axes) {
     u[i] = TensorMap<Tensor<double, 3>>(&u_p_flat[i * M], N, N, N);
