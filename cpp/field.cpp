@@ -34,79 +34,62 @@ Field::Field() : N(8), nu(1) {
 }
 
 void Field::_ready() {
-  b[2](N / 2, N / 2, N / 2) = 24;
+  b[0](N / 2, N / 2, N / 2) = 24;
 
-  int M = N * N * N;
-  VectorXd b_flat(4 * M);
+  Spectrum B[3];
   for (int i : axes) {
-    b_flat.segment(i * M, M) = Map<VectorXd>(b[i].data(), b[i].size());
-  }
-  b_flat.segment(3 * M, M) = VectorXd::Zero(M);
-
-  // written with ChatGPT:
-
-  SparseMatrix<double> stokes(4 * M, 4 * M);
-  std::vector<Triplet<double>> triplets;
-
-  for (int x = 0; x < N; ++x) {
-    for (int y = 0; y < N; ++y) {
-      for (int z = 0; z < N; ++z) {
-
-        int idx = x + N * (y + N * z);
-        int neighbors[] = {
-            (int)u::posmod(x - 1, N) + N * y + N * N * z,
-            (int)u::posmod(x + 1, N) + N * y + N * N * z,
-            x + N * (int)u::posmod(y - 1, N) + N * N * z,
-            x + N * (int)u::posmod(y + 1, N) + N * N * z,
-            x + N * y + N * N * (int)u::posmod(z - 1, N),
-            x + N * y + N * N * (int)u::posmod(z + 1, N),
-        };
-
-        for (int i : axes) {
-          int off = i * M;
-          int pff = 3 * M;
-
-          // -grad p (here p is the negative pressure)
-          triplets.push_back(Triplet<double>(pff + idx, off + idx, -1));
-          triplets.push_back(
-              Triplet<double>(pff + neighbors[2 * i], off + idx, 1));
-
-          // -nu lap u
-          triplets.push_back(Triplet<double>(off + idx, off + idx, 6 * nu));
-          for (int neighbor : neighbors) {
-            triplets.push_back(Triplet<double>(off + neighbor, off + idx, -nu));
-          }
-
-          // div u
-          triplets.push_back(Triplet<double>(off + idx, pff + idx, -1));
-          triplets.push_back(
-              Triplet<double>(off + neighbors[2 * i + 1], pff + idx, 1));
-        }
-      }
-    }
+    B[i] = fft(b[i]);
   }
 
-  stokes.setFromTriplets(triplets.begin(), triplets.end());
+  // U[i] = M[i][j] B[j]
+  // P    = M[3][j] B[j]
+  Spectrum M[4][3];
+  Scalar tmp(N, N, N);
 
-  SparseQR<SparseMatrix<double>, AMDOrdering<int>> solver;
-  solver.compute(stokes);
+  tmp.setZero();
+  tmp(0, 0, 0) = -4;
+  tmp(0, 1, 0) = tmp(0, N - 1, 0) = tmp(0, 0, 1) = tmp(0, 0, N - 1) = 1;
+  M[0][0] = fft(tmp);
+  tmp = tmp.shuffle(Triple{2, 0, 1}).eval();
+  M[1][1] = fft(tmp);
+  tmp = tmp.shuffle(Triple{2, 0, 1}).eval();
+  M[2][2] = fft(tmp);
 
-  if (solver.info() != Success) {
-    u::print("problem decomposing stokes: ", solver.info());
-  }
+  tmp.setZero();
+  tmp(0, 0, 0) = tmp(1, N - 1, 0) = 1;
+  tmp(1, 0, 0) = tmp(0, N - 1, 0) = -1;
+  M[0][1] = fft(tmp.shuffle(Triple{0, 1, 2}));
+  M[0][2] = fft(tmp.shuffle(Triple{0, 2, 1}));
+  M[1][2] = fft(tmp.shuffle(Triple{2, 0, 1}));
+  M[1][0] = fft(tmp.shuffle(Triple{1, 0, 2}));
+  M[2][0] = fft(tmp.shuffle(Triple{1, 2, 0}));
+  M[2][1] = fft(tmp.shuffle(Triple{2, 1, 0}));
 
-  u::print("rank: ", solver.rank(), " out of ", solver.rows());
+  tmp.setZero();
+  tmp(0, 0, 0) = 7;
+  tmp(N - 1, 0, 0) = -7;
+  tmp(0, 1, 0) = tmp(0, N - 1, 0) = tmp(0, 0, 1) = tmp(0, 0, N - 1) =
+      tmp(1, 0, 0) = -1;
+  tmp(N - 1, 1, 0) = tmp(N - 1, N - 1, 0) = tmp(N - 1, 0, 1) =
+      tmp(N - 1, 0, N - 1) = tmp(N - 2, 0, 0) = 1;
+  M[3][0] = nu * fft(tmp);
+  M[3][1] = nu * fft(tmp.shuffle(Triple{2, 0, 1}));
+  M[3][2] = nu * fft(tmp.shuffle(Triple{1, 2, 0}));
 
-  VectorXd u_p_flat = solver.solve(b_flat);
-
-  if (solver.info() != Success) {
-    u::print("problem solving stokes: ", solver.info());
-  }
+  tmp.setZero();
+  tmp(0, 0, 0) = -6;
+  tmp(1, 0, 0) = tmp(N - 1, 0, 0) = tmp(0, 1, 0) = tmp(0, N - 1, 0) =
+      tmp(0, 0, 1) = tmp(0, 0, N - 1) = 1;
+  Spectrum denom = nu * fft(tmp).pow(2);
 
   for (int i : axes) {
-    u[i] = TensorMap<Tensor<double, 3>>(&u_p_flat[i * M], N, N, N);
+    Spectrum U = (M[i][0] * B[0] + M[i][1] * B[1] + M[i][2] * B[2]) / denom;
+    U(0, 0, 0) = 0;
+    u[i] = ifft(U);
   }
-  p = TensorMap<Tensor<double, 3>>(&u_p_flat[3 * M], N, N, N);
+  Spectrum P = (M[3][0] * B[0] + M[3][1] * B[1] + M[3][2] * B[2]) / denom;
+  P(0, 0, 0) = 0;
+  p = ifft(P);
 
   draw();
 }

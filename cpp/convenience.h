@@ -7,6 +7,18 @@ using u = godot::UtilityFunctions;
 
 namespace Eigen {
 
+using Spectrum = Tensor<std::complex<double>, 3>;
+using Scalar = Tensor<double, 3>;
+using Triple = DSizes<int, 3>;
+
+Spectrum fft(Scalar f) {
+  return f.fft<BothParts, FFT_FORWARD>(Triple{0, 1, 2});
+}
+
+Scalar ifft(Spectrum f) {
+  return f.fft<RealPart, FFT_REVERSE>(Triple{0, 1, 2});
+}
+
 template <typename T, int N>
 auto antirotate(const Tensor<T, N> &data, const Index dist, const Index dim) {
   auto singleton = [&](Index idx) {
