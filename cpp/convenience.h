@@ -5,18 +5,42 @@
 
 using u = godot::UtilityFunctions;
 
+const int axes[] = {0, 1, 2};
+
 namespace Eigen {
 
 using Spectrum = Tensor<std::complex<double>, 3>;
 using Scalar = Tensor<double, 3>;
 using Triple = DSizes<int, 3>;
 
-Spectrum fft(Scalar f) {
+inline Spectrum fft(Scalar f) {
   return f.fft<BothParts, FFT_FORWARD>(Triple{0, 1, 2});
 }
 
-Scalar ifft(Spectrum f) {
+inline Scalar ifft(Spectrum f) {
   return f.fft<RealPart, FFT_REVERSE>(Triple{0, 1, 2});
+}
+
+inline VectorXd pack(Scalar v[3], Scalar s) {
+  VectorXd flat(v[0].size() + v[1].size() + v[2].size() + s.size());
+  int off = 0;
+  for (int i : axes) {
+    flat.segment(off, v[i].size()) = Map<VectorXd>(v[i].data(), v[i].size());
+    off += v[i].size();
+  }
+  flat.segment(off, s.size()) = Map<VectorXd>(s.data(), s.size());
+  return flat;
+}
+
+inline void unpack(VectorXd flat, Scalar v[3], Scalar &s) {
+  int off = 0;
+  for (int i : axes) {
+    v[i] = TensorMap<Scalar>(&flat[off], v[i].dimension(0), v[i].dimension(1),
+                             v[i].dimension(2));
+    off += v[i].size();
+  }
+  s = TensorMap<Scalar>(&flat[off], s.dimension(0), s.dimension(1),
+                        s.dimension(2));
 }
 
 template <typename T, int N>
