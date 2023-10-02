@@ -18,7 +18,7 @@ void Field::_bind_methods() {
       "set_nu", "get_nu");
 }
 
-Field::Field() : N(4), nu(1) {
+Field::Field() : N(8), nu(1) {
 
   Tensor<double, 3> empty(N, N, N);
   empty.setZero();
@@ -129,7 +129,7 @@ void Field::_ready() {
 
   // ==== do other stuff ====
 
-  b[0](N / 2, N / 2, N / 2) = 24;
+  b[0](N / 2, N / 2, N / 2) = 36;
   solve_qr();
   draw();
 }
@@ -151,13 +151,13 @@ void Field::solve_fft() {
   p = ifft(P);
 
   // ==== validate ====
-  VectorXd u_p_flat = pack(u, p);
-  Scalar bob[3];
-  Scalar null;
-  std::copy(std::begin(b), std::end(b), std::begin(bob));
-  unpack(stokes * u_p_flat, bob, null);
-  std::cout << bob[0] << std::endl;
-  std::cout << null << std::endl;
+  // VectorXd u_p_flat = pack(u, p);
+  // Scalar bob[3];
+  // Scalar null;
+  // std::copy(std::begin(b), std::end(b), std::begin(bob));
+  // unpack(stokes * u_p_flat, bob, null);
+  // std::cout << bob[0] << std::endl;
+  // std::cout << null << std::endl;
 }
 
 void Field::solve_qr() {
@@ -180,7 +180,6 @@ void Field::solve_qr() {
   // pressure normalization is arbitrary
   Tensor<double, 0> mean = p.mean();
   p -= p.constant(mean());
-  std::cout << p << std::endl;
 
   // ==== validate ====
 
