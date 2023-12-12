@@ -25,6 +25,11 @@ sources = Glob(src_path + "/*.cpp")
 env.Tool("compilation_db")
 env.CompilationDatabase()
 
+# it's the same speed with -O2 as -O3, wtf?
+# and -O1 is only marginally slower
+# -O0 is much slower though
+env.Program("bench", Glob(src_path + "/*.cpp"), CCFLAGS='-O3')
+
 if env["platform"] == "macos":
     library = env.SharedLibrary(
         godot_project_path + "/bin/lib" + project_name + ".{}.{}.framework/libgdexample.{}.{}".format(

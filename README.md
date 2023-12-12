@@ -8,7 +8,8 @@ with nd convolutions and (b) while cleaner, is slower to write.
 
 Anyone wishing to do computations with discreet exterior calculus might find
 this code to be a good starting point. DGtal also has a DEC module, but you may
-find this smaller code base easier to work with (and the plots low key more aesthetic).
+find this smaller code base easier to work with (and the plots low key more
+aesthetic).
 
 ## running
 

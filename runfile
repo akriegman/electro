@@ -10,6 +10,12 @@ function run {
     fi
 }
 
+function bench {
+	if scons bench; then
+		./bench
+	fi
+}
+
 function build {
     declare -A ext=( [linux]="" [macos]=".app" [windows]=".exe" )
 	if scons target=template_release platform=$1; then
@@ -24,4 +30,13 @@ function edit {
 function fmt {
     scons compile_commands.json
     clang-format -i cpp/*.cpp cpp/*.h
+}
+
+function present {
+	echo next: stokes complexity graph
+	read
+	open media/time_graph.png
+    echo next: electro demonstration
+    read
+	bin/electro -f
 }

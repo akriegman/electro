@@ -1,11 +1,14 @@
 #pragma once
 
+#define EIGEN_USE_THREADS
 #include <Eigen/CXX11/Tensor>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using u = godot::UtilityFunctions;
 
 const int axes[] = {0, 1, 2};
+
+inline int posmod(int x, int m) { return (x % m + m) % m; }
 
 namespace Eigen {
 
