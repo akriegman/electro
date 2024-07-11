@@ -1,5 +1,7 @@
 # Electro
 
+https://youtu.be/s-dXnwaJokQ?si=UmZ8jL4OlNWiZDJq
+
 This is part research project and part game. We're using the Godot game engine
 for the purposes of 3D graphics, moving the camera, interacting with the fields,
 and potentially making a game out of this one day. We're using C++ because speed
